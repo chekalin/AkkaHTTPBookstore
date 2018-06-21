@@ -1,4 +1,4 @@
-#Akka HTTP Bookstore
+# Akka HTTP Bookstore
 
 Sample RESTful service using scala, akka-http, slick, flyway and postgres
 
