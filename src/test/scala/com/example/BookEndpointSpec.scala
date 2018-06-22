@@ -53,18 +53,39 @@ class BookEndpointSpec extends AsyncWordSpec
         }
       }
     }
-    //    "return NotFound when we try to delete a non existent category" in {
-    //      Delete("/categories/10/") ~> categoryController.routes ~> check {
-    //        status mustBe StatusCodes.NotFound
-    //      }
-    //    }
-    //    "return NoContent when we delete existent category" in {
-    //      categoryRepository.create(categorySpecHelper.category) flatMap { c =>
-    //        Delete(s"/categories/${c.id.get}/") ~> categoryController.routes ~> check {
-    //          status mustBe StatusCodes.NoContent
-    //        }
-    //      }
-    //    }
+    "return NotFound when we try to get a non existent book" in {
+      Get("/books/10/") ~> bookController.routes ~> check {
+        status mustBe StatusCodes.NotFound
+      }
+    }
+    "return book by id" in {
+      categoryRepository.create(categorySpecHelper.category) flatMap { c =>
+        bookRepository.create(bookSpecHelper.book(c.id.get)) flatMap { b =>
+          Get(s"/books/${b.id.get}/") ~> bookController.routes ~> check {
+            bookRepository.delete(b.id.get)
+            categoryRepository.delete(c.id.get)
+            val book = responseAs[Book]
+            book.id mustBe b.id
+            book.title mustBe "Murder in Ganymede"
+          }
+        }
+      }
+    }
+    "return NotFound when we try to delete a non existent book" in {
+      Delete("/books/10/") ~> bookController.routes ~> check {
+        status mustBe StatusCodes.NotFound
+      }
+    }
+    "return NoContent when we delete existent book" in {
+      categoryRepository.create(categorySpecHelper.category) flatMap { c =>
+        bookRepository.create(bookSpecHelper.book(c.id.get)) flatMap { b =>
+          Delete(s"/books/${b.id.get}/") ~> bookController.routes ~> check {
+            categoryRepository.delete(c.id.get)
+            status mustBe StatusCodes.NoContent
+          }
+        }
+      }
+    }
   }
 
 

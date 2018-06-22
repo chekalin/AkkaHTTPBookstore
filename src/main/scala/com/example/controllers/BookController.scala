@@ -17,6 +17,23 @@ class BookController(bookRepository: BookRepository) extends BookJson {
           }
         }
       }
+    } ~
+    pathPrefix(IntNumber) { id =>
+      pathEndOrSingleSlash {
+        get {
+          onSuccess(bookRepository.findById(id)) {
+            case Some(book) => complete(book)
+            case None => complete(StatusCodes.NotFound)
+          }
+        } ~
+        delete {
+          onSuccess(bookRepository.delete(id)) {
+            case n if n > 0 => complete(StatusCodes.NoContent)
+            case _ => complete(StatusCodes.NotFound)
+          }
+        }
+      }
+
     }
   }
 
