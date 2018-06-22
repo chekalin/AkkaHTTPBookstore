@@ -6,6 +6,7 @@ import com.example.services.DatabaseService
 import scala.concurrent.{ExecutionContext, Future}
 
 class BookRepository(val databaseService: DatabaseService)(implicit executor: ExecutionContext) extends BookTable {
+
   import databaseService._
   import databaseService.driver.api._
 
@@ -17,4 +18,17 @@ class BookRepository(val databaseService: DatabaseService)(implicit executor: Ex
 
   def create(book: Book): Future[Book] = db.run(books returning books += book)
 
+  def search(bookSearch: BookSearch): Future[Seq[Book]] = {
+    val query = books.filter { book =>
+      List(
+        bookSearch.title.map(t => book.title like s"%$t%"),
+        bookSearch.releaseDate.map(book.releaseDate === _),
+        bookSearch.categoryId.map(book.categoryId === _),
+        bookSearch.author.map(a => book.author like s"%$a%")
+      ).collect({ case Some(criteria) => criteria })
+        .reduceLeftOption(_ || _)
+        .getOrElse(true: Rep[Boolean])
+    }
+    db.run(query.result)
+  }
 }
