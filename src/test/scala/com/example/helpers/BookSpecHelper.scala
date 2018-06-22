@@ -9,7 +9,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class BookSpecHelper(categoryRepository: CategoryRepository)(bookRepository: BookRepository)(implicit executionContext: ExecutionContext) {
 
-  val category = Category(None, "Sci-Fi")
+  val category = Category(None, "Category")
   val sciFiCategory = Category(None, "Sci-Fi")
   val techCategory = Category(None, "Technical")
 
