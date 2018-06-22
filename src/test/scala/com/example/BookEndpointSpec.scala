@@ -86,6 +86,13 @@ class BookEndpointSpec extends AsyncWordSpec
         }
       }
     }
+    "return all books when no query parameters are sent" in {
+      Get("/books/") ~> bookController.routes ~> check {
+        status mustBe StatusCodes.OK
+        val books= responseAs[List[Book]]
+        books must have size bookSpecHelper.bookFields.size
+      }
+    }
   }
 
 
