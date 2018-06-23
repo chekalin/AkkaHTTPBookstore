@@ -46,7 +46,6 @@ class BookSearchSpec extends AsyncWordSpec
 
         val bookSearchMultiple = BookSearch(title = Some("The"))
         bookRepository.search(bookSearchMultiple).map { books =>
-          println("assertion")
           books.size mustBe 2
         }
       }
@@ -92,7 +91,6 @@ class BookSearchSpec extends AsyncWordSpec
 
         val bookSearch = BookSearch(author = Some("H.G."), title = Some("The"))
         bookRepository.search(bookSearch).map { books =>
-          books.foreach(println)
           books.size mustBe 2
         }
       }
