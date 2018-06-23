@@ -18,3 +18,5 @@ libraryDependencies ++= Seq(
   "org.flywaydb" % "flyway-core" % "3.2.1",
   "com.github.t3hnar" %% "scala-bcrypt" % "3.0"
 )
+
+parallelExecution in Test := false
