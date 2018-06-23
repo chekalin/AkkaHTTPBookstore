@@ -1,19 +1,30 @@
 package com.example.controllers
 
+import java.sql.Date
+
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.example.models.{Book, BookJson}
+import akka.http.scaladsl.unmarshalling.{PredefinedFromStringUnmarshallers, Unmarshaller}
+import com.example.models.{Book, BookJson, BookSearch}
 import com.example.repository.BookRepository
 
-class BookController(bookRepository: BookRepository) extends BookJson {
+class BookController(bookRepository: BookRepository) extends BookJson with PredefinedFromStringUnmarshallers {
+
+  implicit val dateFromStringUnmarshaller: Unmarshaller[String, Date] =
+    Unmarshaller.strict[String, Date] { string =>
+      Date.valueOf(string)
+    }
 
   val routes: Route = pathPrefix("books") {
     pathEndOrSingleSlash {
       get {
-        complete{
-          bookRepository.all
-        }
+        parameters(('title.?, 'releaseDate.as[Date].?, 'categoryId.as[Long].?, 'author.?))
+          .as(BookSearch) { bookSearch =>
+            complete {
+              bookRepository.search(bookSearch)
+            }
+          }
       } ~
       post {
         decodeRequest {

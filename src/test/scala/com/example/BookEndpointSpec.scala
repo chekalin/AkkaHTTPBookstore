@@ -9,6 +9,8 @@ import com.example.repository.{BookRepository, CategoryRepository}
 import com.example.services.{ConfigService, FlywayService, PostgresService}
 import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
+import scala.concurrent.ExecutionContextExecutor
+
 class BookEndpointSpec extends AsyncWordSpec
   with MustMatchers
   with BeforeAndAfterAll
@@ -17,7 +19,7 @@ class BookEndpointSpec extends AsyncWordSpec
   with ScalatestRouteTest
   with BookJson {
 
-  override implicit val executor = system.dispatcher
+  override implicit val executor: ExecutionContextExecutor = system.dispatcher
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
   val databaseService = new PostgresService(jdbcUrl, dbUser, dbPassword)
@@ -91,6 +93,18 @@ class BookEndpointSpec extends AsyncWordSpec
         status mustBe StatusCodes.OK
         val books= responseAs[List[Book]]
         books must have size bookSpecHelper.bookFields.size
+      }
+    }
+    "return all books that conform to the query parameters sent" in {
+      Get("/books?title=in&author=Ray") ~> bookController.routes ~> check {
+        status mustBe StatusCodes.OK
+        val books = responseAs[List[Book]]
+        books must have size 1
+      }
+      Get("/books?title=The") ~> bookController.routes ~> check {
+        status mustBe StatusCodes.OK
+        val books = responseAs[List[Book]]
+        books must have size 2
       }
     }
   }
