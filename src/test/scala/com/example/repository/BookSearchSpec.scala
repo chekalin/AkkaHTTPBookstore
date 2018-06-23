@@ -18,75 +18,91 @@ class BookSearchSpec extends AsyncWordSpec
   val bookRepository = new BookRepository(databaseService)
   val bookSpecHelper = new BookSpecHelper(categoryRepository)(bookRepository)
 
-  override def beforeAll: Unit = {
+  override def beforeAll {
     flywayService.migrateDatabase
-    bookSpecHelper.bulkInsert()
   }
 
-  override def afterAll(): Unit = {
-    bookSpecHelper.bulkDelete()
+  override def afterAll {
     flywayService.dropDatabase
   }
 
   "Performing a book search" must {
     "return an empty list if there are no matches" in {
-      val bookSearch = BookSearch(title = Some("Non existent book"))
-      bookRepository.search(bookSearch).map { books =>
-        books.size mustBe 0
+      bookSpecHelper.bulkInsertAndDelete { b =>
+        val bookSearch = BookSearch(title = Some("Non existent book"))
+        bookRepository.search(bookSearch).map { books =>
+          books.size mustBe 0
+        }
       }
     }
 
     "return matching books by title" in {
-      val bookSearch = BookSearch(title = Some("Akka"))
-      bookRepository.search(bookSearch).map { books =>
-        books.size mustBe 1
-        books.head.title mustBe bookSpecHelper.bookFields.head._1
-      }
+      bookSpecHelper.bulkInsertAndDelete { b =>
+        val bookSearch = BookSearch(title = Some("Akka"))
+        bookRepository.search(bookSearch).map { books =>
+          books.size mustBe 1
+          books.head.title mustBe bookSpecHelper.bookFields.head._1
+        }
 
-      val bookSearchMultiple = BookSearch(title = Some(" in "))
-      bookRepository.search(bookSearchMultiple).map { books =>
-        books.size mustBe 2
+        val bookSearchMultiple = BookSearch(title = Some("The"))
+        bookRepository.search(bookSearchMultiple).map { books =>
+          println("assertion")
+          books.size mustBe 2
+        }
       }
     }
 
     "return books by release date" in {
-      val bookSearch = BookSearch(releaseDate = Some(Date.valueOf("1993-01-01")))
-      bookRepository.search(bookSearch).map { books =>
-        books.size mustBe 1
-        books.head.title mustBe bookSpecHelper.bookFields(1)._1
+      bookSpecHelper.bulkInsertAndDelete { b =>
+        val bookSearch = BookSearch(releaseDate = Some(Date.valueOf("1993-01-01")))
+        bookRepository.search(bookSearch).map { books =>
+          books.size mustBe 1
+          books.head.title mustBe bookSpecHelper.bookFields(2)._1
+        }
       }
     }
 
     "return books by category" in {
-      for {
-        Some(category) <- categoryRepository.findByTitle(bookSpecHelper.sciFiCategory.title)
-        books <- bookRepository.search(BookSearch(categoryId = Some(category.id.get)))
-      } yield books.size mustBe 2
+      bookSpecHelper.bulkInsertAndDelete { b =>
+
+        for {
+          Some(category) <- categoryRepository.findByTitle(bookSpecHelper.sciFiCategory.title)
+          books <- bookRepository.search(BookSearch(categoryId = Some(category.id.get)))
+        } yield books.size mustBe 3
+      }
     }
 
     "return the books by author" in {
-      val bookSearch = BookSearch(author = Some(". We"))
-      bookRepository.search(bookSearch).map { books =>
-        books.size mustBe 1
+      bookSpecHelper.bulkInsertAndDelete { b =>
+
+        val bookSearch = BookSearch(author = Some(". We"))
+        bookRepository.search(bookSearch).map { books =>
+          books.size mustBe 2
+        }
       }
     }
 
     "return correctly the expected books when combining searches" in {
-      for {
-        Some(category) <- categoryRepository.findByTitle(bookSpecHelper.sciFiCategory.title)
-        books <- bookRepository.search(BookSearch(categoryId = category.id, title = Some("Scala")))
-      } yield books.size mustBe 0
+      bookSpecHelper.bulkInsertAndDelete { b =>
 
-      val bookSearch = BookSearch(author = Some("H.G."), title = Some("The"))
-      bookRepository.search(bookSearch).map { books =>
-        books.foreach(println)
-        books.size mustBe 1
+        for {
+          Some(category) <- categoryRepository.findByTitle(bookSpecHelper.sciFiCategory.title)
+          books <- bookRepository.search(BookSearch(categoryId = category.id, title = Some("Scala")))
+        } yield books.size mustBe 0
+
+        val bookSearch = BookSearch(author = Some("H.G."), title = Some("The"))
+        bookRepository.search(bookSearch).map { books =>
+          books.foreach(println)
+          books.size mustBe 2
+        }
       }
     }
 
     "return all books for empty search" in {
-      bookRepository.search(BookSearch()).map { books =>
-        books.size mustBe 5
+      bookSpecHelper.bulkInsertAndDelete { b =>
+        bookRepository.search(BookSearch()).map { books =>
+          books.size mustBe 6
+        }
       }
     }
 

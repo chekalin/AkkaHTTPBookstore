@@ -18,6 +18,8 @@ class BookRepository(val databaseService: DatabaseService)(implicit executor: Ex
 
   def create(book: Book): Future[Book] = db.run(books returning books += book)
 
+  def bulkCreate(bookSeq: Seq[Book]): Future[Seq[Book]] = db.run(books returning books ++= bookSeq)
+
   def search(bookSearch: BookSearch): Future[Seq[Book]] = {
     val query = books.filter { book =>
       List(
