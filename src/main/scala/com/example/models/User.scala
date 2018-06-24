@@ -7,7 +7,7 @@ import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 case class User(id: Option[Long], name: String, email: String, password: String)
 
-trait UsrJson extends SprayJsonSupport with DefaultJsonProtocol {
+trait UserJson extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val userFormat: RootJsonFormat[User] = jsonFormat4(User.apply)
 }
 
