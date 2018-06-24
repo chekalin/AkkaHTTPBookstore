@@ -2,6 +2,7 @@ package com.example
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
+import com.example.controllers.UserController
 import com.example.models.{User, UserJson}
 import com.example.repository.UserRepository
 import com.example.services.{ConfigService, FlywayService, PostgresService}

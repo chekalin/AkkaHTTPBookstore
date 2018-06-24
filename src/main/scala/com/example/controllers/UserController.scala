@@ -1,4 +1,4 @@
-package com.example
+package com.example.controllers
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._

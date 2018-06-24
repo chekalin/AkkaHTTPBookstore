@@ -1,15 +1,16 @@
 package com.example
 
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.MissingHeaderRejection
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.example.controllers.BookController
 import com.example.helpers.{BookSpecHelper, CategorySpecHelper}
-import com.example.models.{Book, BookJson}
-import com.example.repository.{BookRepository, CategoryRepository}
-import com.example.services.{ConfigService, FlywayService, PostgresService}
-import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
+import com.example.models.{Book, BookJson, BookSearch, User}
+import com.example.repository.{BookRepository, CategoryRepository, UserRepository}
+import com.example.services.{ConfigService, FlywayService, PostgresService, TokenService}
+import org.scalatest.{Assertion, AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class BookEndpointSpec extends AsyncWordSpec
   with MustMatchers
@@ -28,8 +29,10 @@ class BookEndpointSpec extends AsyncWordSpec
   val bookRepository = new BookRepository(databaseService)
   val categorySpecHelper = new CategorySpecHelper(categoryRepository)
   val bookSpecHelper = new BookSpecHelper(categoryRepository)(bookRepository)
+  val userRepository = new UserRepository(databaseService)
+  val tokenService = new TokenService(userRepository)
 
-  val bookController = new BookController(bookRepository)
+  val bookController = new BookController(bookRepository, tokenService)
 
   override def beforeAll: Unit = {
     flywayService.migrateDatabase
@@ -56,22 +59,51 @@ class BookEndpointSpec extends AsyncWordSpec
       }
     }
     "return NotFound when we try to get a non existent book" in {
+      val user = User(None, "user", "test@example.com", "password")
+
+      def assertion(token: String): Future[Assertion] =
+        Get("/books/10/") ~> addHeader("Authorization", token) ~> bookController.routes ~> check {
+          status mustBe StatusCodes.NotFound
+        }
+
+      for {
+        storedUser <- userRepository.create(user)
+        result <- assertion(tokenService.createToken(storedUser))
+        _ <- userRepository.delete(storedUser.id.get)
+      } yield result
+
+    }
+    "reject request when there is no token in the request" in {
       Get("/books/10/") ~> bookController.routes ~> check {
-        status mustBe StatusCodes.NotFound
+        rejection mustBe MissingHeaderRejection("Authorization")
       }
     }
-    "return book by id" in {
-      categoryRepository.create(categorySpecHelper.category) flatMap { c =>
-        bookRepository.create(bookSpecHelper.book(c.id.get)) flatMap { b =>
-          Get(s"/books/${b.id.get}/") ~> bookController.routes ~> check {
-            bookRepository.delete(b.id.get)
-            categoryRepository.delete(c.id.get)
-            val book = responseAs[Book]
-            book.id mustBe b.id
-            book.title mustBe "Murder in Ganymede"
-          }
+    "return unauthorized when there is an invalid token in the request" in {
+      val invalidUser = User(Some(123), "Name", "Email", "Password")
+      val invalidToken = tokenService.createToken(invalidUser)
+
+      Get("/books/10/") ~> addHeader("Authorization", invalidToken) ~> bookController.routes ~> check {
+        status mustBe StatusCodes.Unauthorized
+      }
+    }
+    "return the book information when the token is valid" in {
+      def assertion(token: String, bookId: Long): Future[Assertion] = {
+        Get(s"/books/$bookId") ~> addHeader("Authorization", token) ~> bookController.routes ~> check {
+          val book = responseAs[Book]
+          book.title mustBe "Akka in Action"
+          book.author mustBe "Raymond Roestenburg, Rob Bakker, and Rob Williams"
         }
       }
+
+      val user = User(None, "name", "test@example.com", "password")
+      val bookSearch = BookSearch(title = Some("Akka in Action"))
+
+      for {
+        storedUser <- userRepository.create(user)
+        books <- bookRepository.search(bookSearch)
+        result <- assertion(tokenService.createToken(storedUser), books.head.id.get)
+        _ <- userRepository.delete(storedUser.id.get)
+      } yield result
     }
     "return NotFound when we try to delete a non existent book" in {
       Delete("/books/10/") ~> bookController.routes ~> check {
@@ -91,7 +123,7 @@ class BookEndpointSpec extends AsyncWordSpec
     "return all books when no query parameters are sent" in {
       Get("/books/") ~> bookController.routes ~> check {
         status mustBe StatusCodes.OK
-        val books= responseAs[List[Book]]
+        val books = responseAs[List[Book]]
         books must have size bookSpecHelper.bookFields.size
       }
     }
