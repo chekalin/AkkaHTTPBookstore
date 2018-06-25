@@ -1,7 +1,9 @@
 package com.example.services
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.stream.Materializer
 import com.example.controllers.{AuthController, BookController, CategoryController, UserController}
 import com.example.repository.{AuthRepository, BookRepository, CategoryRepository, UserRepository}
 
@@ -13,7 +15,7 @@ class ApiService(
                   tokenService: TokenService,
                   userRepository: UserRepository,
                   authRepository: AuthRepository
-                )(implicit executionContext: ExecutionContext) {
+                )(implicit executionContext: ExecutionContext, actorSystem: ActorSystem, materializer: Materializer) {
 
   var categoryController: CategoryController = new CategoryController(categoryRepository)
   val bookController: BookController = new BookController(bookRepository, tokenService)

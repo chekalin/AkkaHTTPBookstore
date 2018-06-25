@@ -2,18 +2,21 @@ package com.example.controllers
 
 import java.sql.Date
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.{PredefinedFromStringUnmarshallers, Unmarshaller}
+import akka.stream.Materializer
 import com.example.directives.VerifyToken
 import com.example.models.{Book, BookJson, BookSearch}
 import com.example.repository.BookRepository
-import com.example.services.TokenService
+import com.example.services.{CurrencyService, TokenService}
 
 import scala.concurrent.ExecutionContext
 
-class BookController(val bookRepository: BookRepository, val tokenService: TokenService)(implicit val ec: ExecutionContext)
+class BookController(val bookRepository: BookRepository, val tokenService: TokenService)
+                    (implicit val ec: ExecutionContext, actorSystem: ActorSystem, materializer: Materializer)
   extends BookJson
     with PredefinedFromStringUnmarshallers
     with VerifyToken {
@@ -23,15 +26,26 @@ class BookController(val bookRepository: BookRepository, val tokenService: Token
       Date.valueOf(string)
     }
 
+  val DefaultCurrency = "USD"
+
   val routes: Route = pathPrefix("books") {
     pathEndOrSingleSlash {
       get {
-        parameters(('title.?, 'releaseDate.as[Date].?, 'categoryId.as[Long].?, 'author.?))
-          .as(BookSearch) { bookSearch =>
-            complete {
-              bookRepository.search(bookSearch)
+        parameter('currency.?) { currency =>
+          parameters(('title.?, 'releaseDate.as[Date].?, 'categoryId.as[Long].?, 'author.?))
+            .as(BookSearch) { bookSearch =>
+              onSuccess(bookRepository.search(bookSearch)) { books =>
+                currency match {
+                  case Some(currencyCode) if currencyCode != DefaultCurrency =>
+                    onSuccess(CurrencyService.getRates) {
+                      case Some(rates) => complete(books.map { book => book.copy(price = book.price * rates(currencyCode)) })
+                      case None => complete(StatusCodes.ServiceUnavailable)
+                    }
+                  case _ => complete(books)
+                }
+              }
             }
-          }
+        }
       } ~
         post {
           decodeRequest {

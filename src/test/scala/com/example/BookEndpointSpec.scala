@@ -2,7 +2,8 @@ package com.example
 
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.MissingHeaderRejection
-import akka.http.scaladsl.testkit.ScalatestRouteTest
+import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
+import akka.testkit.TestDuration
 import com.example.controllers.BookController
 import com.example.helpers.{BookSpecHelper, CategorySpecHelper}
 import com.example.models.{Book, BookJson, BookSearch, User}
@@ -10,6 +11,7 @@ import com.example.repository.{BookRepository, CategoryRepository, UserRepositor
 import com.example.services.{ConfigService, FlywayService, PostgresService, TokenService}
 import org.scalatest.{Assertion, AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class BookEndpointSpec extends AsyncWordSpec
@@ -58,6 +60,7 @@ class BookEndpointSpec extends AsyncWordSpec
         }
       }
     }
+
     "return NotFound when we try to get a non existent book" in {
       val user = User(None, "user", "test@example.com", "password")
 
@@ -73,11 +76,13 @@ class BookEndpointSpec extends AsyncWordSpec
       } yield result
 
     }
+
     "reject request when there is no token in the request" in {
       Get("/books/10/") ~> bookController.routes ~> check {
         rejection mustBe MissingHeaderRejection("Authorization")
       }
     }
+
     "return unauthorized when there is an invalid token in the request" in {
       val invalidUser = User(Some(123), "Name", "Email", "Password")
       val invalidToken = tokenService.createToken(invalidUser)
@@ -86,6 +91,7 @@ class BookEndpointSpec extends AsyncWordSpec
         status mustBe StatusCodes.Unauthorized
       }
     }
+
     "return the book information when the token is valid" in {
       def assertion(token: String, bookId: Long): Future[Assertion] = {
         Get(s"/books/$bookId") ~> addHeader("Authorization", token) ~> bookController.routes ~> check {
@@ -105,11 +111,13 @@ class BookEndpointSpec extends AsyncWordSpec
         _ <- userRepository.delete(storedUser.id.get)
       } yield result
     }
+
     "return NotFound when we try to delete a non existent book" in {
       Delete("/books/10/") ~> bookController.routes ~> check {
         status mustBe StatusCodes.NotFound
       }
     }
+
     "return NoContent when we delete existent book" in {
       categoryRepository.create(categorySpecHelper.category) flatMap { c =>
         bookRepository.create(bookSpecHelper.book(c.id.get)) flatMap { b =>
@@ -120,6 +128,7 @@ class BookEndpointSpec extends AsyncWordSpec
         }
       }
     }
+
     "return all books when no query parameters are sent" in {
       Get("/books/") ~> bookController.routes ~> check {
         status mustBe StatusCodes.OK
@@ -127,6 +136,17 @@ class BookEndpointSpec extends AsyncWordSpec
         books must have size bookSpecHelper.bookFields.size
       }
     }
+
+    "return books with converted price" in {
+      implicit val timeout: RouteTestTimeout = RouteTestTimeout(5.seconds dilated)
+
+      Get("/books/?currency=EUR") ~> bookController.routes ~> check {
+        status mustBe StatusCodes.OK
+        val books = responseAs[List[Book]]
+        books.head.price must not be 35.0
+      }
+    }
+
     "return all books that conform to the query parameters sent" in {
       Get("/books?title=in&author=Ray") ~> bookController.routes ~> check {
         status mustBe StatusCodes.OK
