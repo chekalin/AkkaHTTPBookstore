@@ -3,7 +3,6 @@ package com.example
 import java.sql.Date
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
 import akka.stream.ActorMaterializer
 import com.example.models.{Book, Category}
 import com.example.repository.{AuthRepository, BookRepository, CategoryRepository, UserRepository}
@@ -11,7 +10,6 @@ import com.example.services._
 import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.ExecutionContext
-import scala.io.StdIn
 
 object WebServer extends App
   with ConfigService
@@ -24,6 +22,7 @@ object WebServer extends App
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
   flywayService.migrateDatabase
+
   val databaseService = new MySqlService(jdbcUrl, dbUser, dbPassword)
 
   val categoryRepository = new CategoryRepository(databaseService)
@@ -53,10 +52,5 @@ object WebServer extends App
 
   val apiService = new ApiService(categoryRepository, bookRepository, tokenService, userRepository, authRepository)
 
-  val bindingFuture = Http().bindAndHandle(apiService.routes, httpHost, httpPort)
-
-  println(s"Server online at $httpHost:$httpPort")
-  println("Press RETURN to stop...")
-  StdIn.readLine()
-  bindingFuture.flatMap(_.unbind()).onComplete(_ => system.terminate())
+  apiService.startServer(httpHost, httpPort)
 }
