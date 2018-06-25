@@ -13,6 +13,7 @@ case class Book(
                  releaseDate: Date,
                  categoryId: Long,
                  quantity: Int,
+                 price: Double,
                  author: String
                )
 
@@ -20,7 +21,7 @@ trait BookJson extends SprayJsonSupport with DefaultJsonProtocol {
 
   import com.example.services.FormatService._
 
-  implicit val bookFormat: RootJsonFormat[Book] = jsonFormat6(Book.apply)
+  implicit val bookFormat: RootJsonFormat[Book] = jsonFormat7(Book.apply)
 }
 
 trait BookTable {
@@ -36,9 +37,11 @@ trait BookTable {
 
     def quantity = column[Int]("quantity")
 
+    def price = column[Double]("price_usd")
+
     def author = column[String]("author")
 
-    override def * = (id, title, releaseDate, categoryId, quantity, author) <> ((Book.apply _).tupled, Book.unapply)
+    override def * = (id, title, releaseDate, categoryId, quantity, price, author) <> ((Book.apply _).tupled, Book.unapply)
   }
 
   protected val books = TableQuery[Books]
