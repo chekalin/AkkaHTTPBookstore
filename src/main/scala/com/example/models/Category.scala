@@ -1,13 +1,13 @@
 package com.example.models
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import slick.driver.PostgresDriver.api._
-import spray.json.DefaultJsonProtocol
+import slick.jdbc.MySQLProfile.api._
+import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 case class Category(id: Option[Long] = None, title: String)
 
 trait CategoryJson extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val categoryFormat = jsonFormat2(Category.apply)
+  implicit val categoryFormat: RootJsonFormat[Category] = jsonFormat2(Category.apply)
 }
 
 trait CategoryTable {

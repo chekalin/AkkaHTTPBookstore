@@ -5,7 +5,7 @@ import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.example.controllers.UserController
 import com.example.models.{User, UserJson}
 import com.example.repository.UserRepository
-import com.example.services.{ConfigService, FlywayService, PostgresService, TokenService}
+import com.example.services.{ConfigService, FlywayService, MySqlService, TokenService}
 import org.scalatest.{Assertion, AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
@@ -21,7 +21,7 @@ class UserEndpointSpec extends AsyncWordSpec
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
-  val databaseService = new PostgresService(jdbcUrl, dbUser, dbPassword)
+  val databaseService = new MySqlService(jdbcUrl, dbUser, dbPassword)
 
   val userRepository = new UserRepository(databaseService)
 

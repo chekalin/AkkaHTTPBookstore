@@ -3,7 +3,7 @@ package com.example.models
 import java.sql.Date
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import slick.driver.PostgresDriver.api._
+import slick.jdbc.MySQLProfile.api._
 import slick.lifted.Tag
 import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 

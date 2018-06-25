@@ -13,7 +13,7 @@ class UserRepository(databaseService: DatabaseService)(implicit val executionCon
 
   def create(user: User): Future[User] = {
     val secureUser = user.copy(password = user.password.bcrypt)
-    db.run(users returning users += secureUser)
+    db.run(users returning users.map(_.id) += secureUser).map(id => secureUser.copy(id = id))
   }
 
   def delete(id: Long): Future[Int] = db.run(users.filter(_.id === id).delete)

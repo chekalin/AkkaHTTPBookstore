@@ -8,6 +8,7 @@ import akka.stream.ActorMaterializer
 import com.example.models.{Book, Category}
 import com.example.repository.{AuthRepository, BookRepository, CategoryRepository, UserRepository}
 import com.example.services._
+import com.typesafe.scalalogging.Logger
 
 import scala.concurrent.ExecutionContext
 import scala.io.StdIn
@@ -19,9 +20,11 @@ object WebServer extends App
   override implicit val materializer: ActorMaterializer = ActorMaterializer()
   override implicit val executor: ExecutionContext = system.dispatcher
 
+  val logger = Logger("App")
+
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
   flywayService.migrateDatabase
-  val databaseService = new PostgresService(jdbcUrl, dbUser, dbPassword)
+  val databaseService = new MySqlService(jdbcUrl, dbUser, dbPassword)
 
   val categoryRepository = new CategoryRepository(databaseService)
   val bookRepository = new BookRepository(databaseService)
@@ -31,10 +34,13 @@ object WebServer extends App
 
   val sciFiCategory = Category(None, "Sci-Fi")
   val techCategory = Category(None, "Technical")
+
+  logger.info("initializing DB with test data...")
   for {
     Category(Some(sciFiCategoryId), _) <- categoryRepository.create(sciFiCategory)
     Category(Some(techCategoryId), _) <- categoryRepository.create(techCategory)
-  } yield {
+  } {
+    logger.info("Creating books...")
     bookRepository.bulkCreate(Seq(
       Book(None, "Akka in Action", Date.valueOf("2016-09-01"), techCategoryId, 2, 35.0, "Raymond Roestenburg, Rob Bakker, and Rob Williams"),
       Book(None, "Scala in Depth", Date.valueOf("2012-01-01"), techCategoryId, 5, 40.0, "Joshua D. Suereth"),

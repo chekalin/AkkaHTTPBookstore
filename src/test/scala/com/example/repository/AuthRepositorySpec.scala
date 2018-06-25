@@ -1,7 +1,7 @@
 package com.example.repository
 
 import com.example.models.{Credentials, User}
-import com.example.services.{ConfigService, FlywayService, PostgresService}
+import com.example.services.{ConfigService, FlywayService, MySqlService}
 import org.scalatest._
 
 class AuthRepositorySpec extends AsyncWordSpec
@@ -10,7 +10,7 @@ class AuthRepositorySpec extends AsyncWordSpec
   with ConfigService {
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
-  val databaseService = new PostgresService(jdbcUrl, dbUser, dbPassword)
+  val databaseService = new MySqlService(jdbcUrl, dbUser, dbPassword)
   val userRepository = new UserRepository(databaseService)
   val authRepository = new AuthRepository(databaseService)
 

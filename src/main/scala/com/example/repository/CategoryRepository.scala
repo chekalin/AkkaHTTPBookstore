@@ -12,7 +12,9 @@ class CategoryRepository(val databaseService: DatabaseService)(implicit executor
 
   def all: Future[Seq[Category]] = db.run(categories.result)
 
-  def create(category: Category): Future[Category] = db.run(categories returning categories += category)
+  def create(category: Category): Future[Category] = db
+    .run(categories returning categories.map(_.id) += category)
+    .map(id => category.copy(id = id))
 
   def findByTitle(title: String): Future[Option[Category]] = db.run(categories.filter(_.title === title).result.headOption)
 

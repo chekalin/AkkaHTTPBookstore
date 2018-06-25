@@ -1,7 +1,7 @@
 package com.example.repository
 
 import com.example.helpers.CategorySpecHelper
-import com.example.services.{ConfigService, FlywayService, PostgresService}
+import com.example.services.{ConfigService, FlywayService, MySqlService}
 import org.scalatest._
 
 class CategoryRepositorySpec extends AsyncWordSpec
@@ -10,7 +10,7 @@ class CategoryRepositorySpec extends AsyncWordSpec
   with ConfigService {
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
-  val databaseService = new PostgresService(jdbcUrl, dbUser, dbPassword)
+  val databaseService = new MySqlService(jdbcUrl, dbUser, dbPassword)
   val categoryRepository = new CategoryRepository(databaseService)
   val categorySpecHelper = new CategorySpecHelper(categoryRepository)
 

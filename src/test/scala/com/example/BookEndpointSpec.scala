@@ -8,7 +8,7 @@ import com.example.controllers.BookController
 import com.example.helpers.{BookSpecHelper, CategorySpecHelper}
 import com.example.models.{Book, BookJson, BookSearch, User}
 import com.example.repository.{BookRepository, CategoryRepository, UserRepository}
-import com.example.services.{ConfigService, FlywayService, PostgresService, TokenService}
+import com.example.services.{ConfigService, FlywayService, MySqlService, TokenService}
 import org.scalatest.{Assertion, AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
 import scala.concurrent.duration._
@@ -25,7 +25,7 @@ class BookEndpointSpec extends AsyncWordSpec
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
-  val databaseService = new PostgresService(jdbcUrl, dbUser, dbPassword)
+  val databaseService = new MySqlService(jdbcUrl, dbUser, dbPassword)
 
   val categoryRepository = new CategoryRepository(databaseService)
   val bookRepository = new BookRepository(databaseService)

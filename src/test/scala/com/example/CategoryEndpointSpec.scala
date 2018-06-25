@@ -6,8 +6,10 @@ import com.example.controllers.CategoryController
 import com.example.helpers.CategorySpecHelper
 import com.example.models.{Category, CategoryJson}
 import com.example.repository.CategoryRepository
-import com.example.services.{ConfigService, FlywayService, PostgresService}
+import com.example.services.{ConfigService, FlywayService, MySqlService}
 import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
+
+import scala.concurrent.ExecutionContextExecutor
 
 class CategoryEndpointSpec extends AsyncWordSpec
   with MustMatchers
@@ -17,10 +19,10 @@ class CategoryEndpointSpec extends AsyncWordSpec
   with ScalatestRouteTest
   with CategoryJson {
 
-  override implicit val executor = system.dispatcher
+  override implicit val executor: ExecutionContextExecutor = system.dispatcher
 
   val flywayService = new FlywayService(jdbcUrl, dbUser, dbPassword)
-  val databaseService = new PostgresService(jdbcUrl, dbUser, dbPassword)
+  val databaseService = new MySqlService(jdbcUrl, dbUser, dbPassword)
 
   val categoryRepository = new CategoryRepository(databaseService)
   val categorySpecHelper = new CategorySpecHelper(categoryRepository)

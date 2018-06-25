@@ -16,9 +16,9 @@ class BookRepository(val databaseService: DatabaseService)(implicit executor: Ex
 
   def delete(id: Long): Future[Int] = db.run(books.filter(_.id === id).delete)
 
-  def create(book: Book): Future[Book] = db.run(books returning books += book)
+  def create(book: Book): Future[Book] = db.run(books returning books.map(_.id) += book).map(id => book.copy(id = id))
 
-  def bulkCreate(bookSeq: Seq[Book]): Future[Seq[Book]] = db.run(books returning books ++= bookSeq)
+  def bulkCreate(bookSeq: Seq[Book]): Future[Seq[Book]] = db.run((books returning books.map(_.id)).into((book, id) => book.copy(id = id)) ++= bookSeq)
 
   def search(bookSearch: BookSearch): Future[Seq[Book]] = {
     val query = books.filter { book =>

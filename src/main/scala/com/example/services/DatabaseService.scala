@@ -1,7 +1,7 @@
 package com.example.services
 
-import slick.driver.JdbcProfile
-import slick.driver.PostgresDriver.api._
+import slick.jdbc.JdbcProfile
+import slick.jdbc.MySQLProfile.api._
 
 trait DatabaseService {
   val driver: JdbcProfile

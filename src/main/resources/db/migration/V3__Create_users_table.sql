@@ -1,6 +1,7 @@
-CREATE TABLE "users" (
-  "id"      BIGSERIAL PRIMARY KEY,
-  "name"   VARCHAR NOT NULL,
-  "email"   VARCHAR NOT NULL UNIQUE ,
-  "password"   VARCHAR NOT NULL
+CREATE TABLE users (
+  id        INTEGER NOT NULL AUTO_INCREMENT,
+  name      VARCHAR(255) NOT NULL,
+  email     VARCHAR(255) NOT NULL UNIQUE ,
+  password  VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id)
 );
