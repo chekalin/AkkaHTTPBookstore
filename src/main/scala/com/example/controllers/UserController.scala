@@ -3,10 +3,14 @@ package com.example.controllers
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import com.example.directives.VerifyToken
 import com.example.models.{User, UserJson}
 import com.example.repository.UserRepository
+import com.example.services.TokenService
 
-class UserController(userRepository: UserRepository) extends UserJson {
+import scala.concurrent.ExecutionContext
+
+class UserController(val userRepository: UserRepository, val tokenService: TokenService)(implicit val ec: ExecutionContext) extends UserJson with VerifyToken {
   val routes: Route =
     pathPrefix("users") {
       pathEndOrSingleSlash {
@@ -22,10 +26,11 @@ class UserController(userRepository: UserRepository) extends UserJson {
         }
       } ~
         pathPrefix(IntNumber) { id =>
-          get {
-            onSuccess(userRepository.findById(id)) {
-              case Some(user) => complete(user)
-              case None => complete(StatusCodes.NotFound)
+          pathEndOrSingleSlash {
+            verifyTokenUser(id) { user =>
+              get {
+                complete(user)
+              }
             }
           }
         }
