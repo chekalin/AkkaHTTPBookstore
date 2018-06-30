@@ -1,14 +1,15 @@
 package com.example.models
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import io.circe.generic.semiauto._
+import io.circe.{Decoder, Encoder}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.Tag
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 case class User(id: Option[Long], name: String, email: String, password: String)
 
-trait UserJson extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val userFormat: RootJsonFormat[User] = jsonFormat4(User.apply)
+object User {
+  implicit val userEncoder: Encoder[User] = deriveEncoder[User]
+  implicit val userDecoder: Decoder[User] = deriveDecoder[User]
 }
 
 trait UserTable {

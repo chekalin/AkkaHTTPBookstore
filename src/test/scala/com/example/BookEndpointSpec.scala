@@ -6,9 +6,10 @@ import akka.http.scaladsl.testkit.{RouteTestTimeout, ScalatestRouteTest}
 import akka.testkit.TestDuration
 import com.example.controllers.BookController
 import com.example.helpers.{BookSpecHelper, CategorySpecHelper}
-import com.example.models.{Book, BookJson, BookSearch, User}
+import com.example.models.{Book, BookSearch, User}
 import com.example.repository.{BookRepository, CategoryRepository, UserRepository}
 import com.example.services.{ConfigService, FlywayService, MySqlService, TokenService}
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import org.scalatest.{Assertion, AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
 import scala.concurrent.duration._
@@ -19,8 +20,8 @@ class BookEndpointSpec extends AsyncWordSpec
   with BeforeAndAfterAll
   with ConfigService
   with WebApi
-  with ScalatestRouteTest
-  with BookJson {
+  with FailFastCirceSupport
+  with ScalatestRouteTest {
 
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
 

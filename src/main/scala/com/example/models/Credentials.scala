@@ -1,10 +1,11 @@
 package com.example.models
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
 case class Credentials(email: String, password: String)
 
-trait CredentialsJson extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val credentialsFormat: RootJsonFormat[Credentials] = jsonFormat2(Credentials.apply)
+object Credentials {
+  implicit val credentialsEncoder: Encoder[Credentials] = deriveEncoder[Credentials]
+  implicit val credentialsDecoder: Decoder[Credentials] = deriveDecoder[Credentials]
 }

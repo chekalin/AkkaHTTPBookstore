@@ -4,9 +4,10 @@ import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.example.controllers.CategoryController
 import com.example.helpers.CategorySpecHelper
-import com.example.models.{Category, CategoryJson}
+import com.example.models.Category
 import com.example.repository.CategoryRepository
 import com.example.services.{ConfigService, FlywayService, MySqlService}
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import org.scalatest.{AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
 import scala.concurrent.ExecutionContextExecutor
@@ -17,7 +18,7 @@ class CategoryEndpointSpec extends AsyncWordSpec
   with ConfigService
   with WebApi
   with ScalatestRouteTest
-  with CategoryJson {
+  with FailFastCirceSupport {
 
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
 

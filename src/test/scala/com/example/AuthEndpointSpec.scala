@@ -6,6 +6,7 @@ import com.example.controllers.AuthController
 import com.example.models._
 import com.example.repository.{AuthRepository, UserRepository}
 import com.example.services.{ConfigService, FlywayService, MySqlService, TokenService}
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import org.scalatest.{Assertion, AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
@@ -16,8 +17,7 @@ class AuthEndpointSpec extends AsyncWordSpec
   with ConfigService
   with WebApi
   with ScalatestRouteTest
-  with AuthJson
-  with CredentialsJson {
+  with FailFastCirceSupport {
 
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
 

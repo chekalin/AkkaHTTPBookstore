@@ -9,15 +9,16 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.{PredefinedFromStringUnmarshallers, Unmarshaller}
 import akka.stream.Materializer
 import com.example.directives.VerifyToken
-import com.example.models.{Book, BookJson, BookSearch}
+import com.example.models.{Book, BookSearch}
 import com.example.repository.BookRepository
 import com.example.services.{CurrencyService, TokenService}
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
 import scala.concurrent.ExecutionContext
 
 class BookController(val bookRepository: BookRepository, val tokenService: TokenService)
                     (implicit val ec: ExecutionContext, actorSystem: ActorSystem, materializer: Materializer)
-  extends BookJson
+  extends FailFastCirceSupport
     with PredefinedFromStringUnmarshallers
     with VerifyToken {
 
@@ -33,7 +34,7 @@ class BookController(val bookRepository: BookRepository, val tokenService: Token
       get {
         parameter('currency.?) { currency =>
           parameters(('title.?, 'releaseDate.as[Date].?, 'categoryId.as[Long].?, 'author.?))
-            .as(BookSearch) { bookSearch =>
+            .as(BookSearch.apply) { bookSearch =>
               onSuccess(bookRepository.search(bookSearch)) { books =>
                 currency match {
                   case Some(currencyCode) if currencyCode != DefaultCurrency =>

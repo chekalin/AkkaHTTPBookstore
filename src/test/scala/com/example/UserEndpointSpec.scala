@@ -3,9 +3,10 @@ package com.example
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.example.controllers.UserController
-import com.example.models.{User, UserJson}
+import com.example.models.User
 import com.example.repository.UserRepository
 import com.example.services.{ConfigService, FlywayService, MySqlService, TokenService}
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 import org.scalatest.{Assertion, AsyncWordSpec, BeforeAndAfterAll, MustMatchers}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
@@ -16,7 +17,7 @@ class UserEndpointSpec extends AsyncWordSpec
   with ConfigService
   with WebApi
   with ScalatestRouteTest
-  with UserJson {
+  with FailFastCirceSupport {
 
   override implicit val executor: ExecutionContextExecutor = system.dispatcher
 

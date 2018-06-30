@@ -3,10 +3,11 @@ package com.example.controllers
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import com.example.models.{Category, CategoryJson}
+import com.example.models.Category
 import com.example.repository.CategoryRepository
+import de.heikoseeberger.akkahttpcirce.FailFastCirceSupport
 
-class CategoryController(val categoryRepository: CategoryRepository) extends CategoryJson {
+class CategoryController(val categoryRepository: CategoryRepository) extends FailFastCirceSupport {
   val routes: Route = pathPrefix("categories") {
     pathEndOrSingleSlash {
       get {

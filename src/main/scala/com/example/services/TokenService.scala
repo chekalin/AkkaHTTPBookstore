@@ -1,18 +1,19 @@
 package com.example.services
 
-import com.example.models.{User, UserJson}
+import com.example.models.User
 import com.example.repository.UserRepository
+import io.circe.parser._
+import io.circe.syntax._
 import pdi.jwt.{Jwt, JwtAlgorithm}
-import spray.json._
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
-class TokenService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) extends UserJson {
+class TokenService(userRepository: UserRepository)(implicit executionContext: ExecutionContext) {
   private val tempKey = "mySuperSecretKey"
 
   def createToken(user: User): String = {
-    Jwt.encode(user.id.get.toJson.toString, tempKey, JwtAlgorithm.HS256)
+    Jwt.encode(user.id.get.asJson.toString, tempKey, JwtAlgorithm.HS256)
   }
 
   def isTokenValid(token: String): Boolean = {
@@ -22,8 +23,8 @@ class TokenService(userRepository: UserRepository)(implicit executionContext: Ex
   def fetchUser(token: String): Future[Option[User]] = {
     Jwt.decodeRaw(token, tempKey, Seq(JwtAlgorithm.HS256)) match {
       case Success(json) =>
-        val id = json.parseJson.convertTo[Long]
-        userRepository.findById(id)
+        val id = decode[Long](json)
+        userRepository.findById(id.getOrElse(throw new IllegalArgumentException("invalid user id in the token")))
       case Failure(e) => Future.failed(e)
     }
   }

@@ -2,8 +2,8 @@ package com.example.models
 
 import java.sql.Date
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json.DefaultJsonProtocol
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 
 case class BookSearch(
                        title: Option[String] = None,
@@ -12,9 +12,12 @@ case class BookSearch(
                        author: Option[String] = None
                      )
 
-trait BookSearchJson extends SprayJsonSupport with DefaultJsonProtocol {
+object BookSearch {
+  // cannot do an import from FormatService as IntelliJ keeps removing it as unused
+  implicit val sqlDateDecoder: Decoder[Date] = com.example.services.FormatService.decodeSqlDate
+  implicit val sqlDateEncoder: Encoder[Date] = com.example.services.FormatService.encodeSqlDate
 
-  import com.example.services.FormatService._
-
-  implicit val bookSearchFormat = jsonFormat4(BookSearch.apply)
+  implicit val bookSearchEncoder: Encoder[BookSearch] = deriveEncoder[BookSearch]
+  implicit val bookSearchDecoder: Decoder[BookSearch] = deriveDecoder[BookSearch]
 }
+

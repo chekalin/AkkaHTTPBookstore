@@ -1,10 +1,11 @@
 package com.example.models
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import io.circe.generic.semiauto._
+import io.circe.{Decoder, Encoder}
 
 case class Auth(user: User, token: String)
 
-trait AuthJson extends SprayJsonSupport with DefaultJsonProtocol with UserJson {
-  implicit val authFormat: RootJsonFormat[Auth] = jsonFormat2(Auth.apply)
+object Auth {
+  implicit val authEncoder: Encoder[Auth] = deriveEncoder[Auth]
+  implicit val authDecoder: Decoder[Auth] = deriveDecoder[Auth]
 }

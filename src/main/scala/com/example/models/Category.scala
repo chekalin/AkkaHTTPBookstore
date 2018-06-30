@@ -1,13 +1,14 @@
 package com.example.models
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import slick.jdbc.MySQLProfile.api._
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 case class Category(id: Option[Long] = None, title: String)
 
-trait CategoryJson extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val categoryFormat: RootJsonFormat[Category] = jsonFormat2(Category.apply)
+object Category {
+  implicit val categoryEncoder: Encoder[Category] = deriveEncoder[Category]
+  implicit val categoryDecoder: Decoder[Category] = deriveDecoder[Category]
 }
 
 trait CategoryTable {

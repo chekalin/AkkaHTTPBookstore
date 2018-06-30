@@ -2,20 +2,25 @@ package com.example.services
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import akka.http.scaladsl.model.{ContentTypes, HttpMethods, HttpRequest, StatusCodes}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.Materializer
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
+import com.typesafe.scalalogging.Logger
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.parser._
+import io.circe.{Decoder, Encoder}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 object CurrencyService {
 
+  val logger = Logger("CurrencyService")
+
   private case class FrankfurterResponse(rates: Map[String, Float])
 
-  private object FrankfurterResponseJson extends SprayJsonSupport with DefaultJsonProtocol {
-    implicit val frankfurterResponseJsonFormat: RootJsonFormat[FrankfurterResponse] = jsonFormat1(FrankfurterResponse.apply)
+  private object FrankfurterResponse {
+    implicit val frankfurterResponseEncoder: Encoder[FrankfurterResponse] = deriveEncoder[FrankfurterResponse]
+    implicit val frankfurterResponseDecoder: Decoder[FrankfurterResponse] = deriveDecoder[FrankfurterResponse]
   }
 
   val baseCurrency = "USD"
@@ -31,12 +36,15 @@ object CurrencyService {
     Http().singleRequest(request).flatMap { response =>
       response.status match {
         case StatusCodes.OK if response.entity.contentType == ContentTypes.`application/json` =>
-          import FrankfurterResponseJson._
-          import spray.json._
           Unmarshal(response.entity).to[String].map { jsonString =>
-            val rates = jsonString.parseJson.convertTo[FrankfurterResponse].rates
-            if (rates.isEmpty) None
-            else Some(rates)
+            decode[FrankfurterResponse](jsonString) match {
+              case Right(FrankfurterResponse(rates)) =>
+                if (rates.isEmpty) None
+                else Some(rates)
+              case Left(failure) =>
+                logger.error(s"cannot parse response from FrankfurterApp, $failure")
+                None
+            }
           }
         case _ => Future.successful(None)
       }

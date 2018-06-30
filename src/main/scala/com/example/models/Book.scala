@@ -2,10 +2,10 @@ package com.example.models
 
 import java.sql.Date
 
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
+import io.circe.{Decoder, Encoder}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.Tag
-import spray.json.{DefaultJsonProtocol, RootJsonFormat}
 
 case class Book(
                  id: Option[Long] = None,
@@ -17,11 +17,13 @@ case class Book(
                  author: String
                )
 
-trait BookJson extends SprayJsonSupport with DefaultJsonProtocol {
+object Book {
+  // cannot do an import from FormatService as IntelliJ keeps removing it as unused
+  implicit val sqlDateDecoder: Decoder[Date] = com.example.services.FormatService.decodeSqlDate
+  implicit val sqlDateEncoder: Encoder[Date] = com.example.services.FormatService.encodeSqlDate
 
-  import com.example.services.FormatService._
-
-  implicit val bookFormat: RootJsonFormat[Book] = jsonFormat7(Book.apply)
+  implicit val authEncoder: Encoder[Book] = deriveEncoder[Book]
+  implicit val authDecoder: Decoder[Book] = deriveDecoder[Book]
 }
 
 trait BookTable {
