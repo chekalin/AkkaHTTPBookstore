@@ -26,7 +26,7 @@ class UserController(val userRepository: UserRepository, val tokenService: Token
           }
         }
       } ~
-        pathPrefix(IntNumber) { id =>
+        pathPrefix(Segment) { id =>
           pathEndOrSingleSlash {
             verifyTokenUser(id) { user =>
               get {

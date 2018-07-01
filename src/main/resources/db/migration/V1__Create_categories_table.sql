@@ -1,5 +1,5 @@
 CREATE TABLE categories (
-  id      INTEGER NOT NULL AUTO_INCREMENT,
+  id      VARCHAR(36) NOT NULL,
   title   VARCHAR(255) NOT NULL,
   PRIMARY KEY (id)
 );

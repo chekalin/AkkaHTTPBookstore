@@ -62,7 +62,7 @@ class UserEndpointSpec extends AsyncWordSpec
     }
 
     "return Unauthorized when no user is found by id" in {
-      val invalidUser = User(Some(123), "name", "test@example.com", "password")
+      val invalidUser = User(Some("some-id"), "name", "test@example.com", "password")
       val invalidToken = tokenService.createToken(invalidUser)
       Get("/users/10") ~> addHeader("Authorization", invalidToken) ~> userController.routes ~> check {
         status mustBe StatusCodes.Unauthorized

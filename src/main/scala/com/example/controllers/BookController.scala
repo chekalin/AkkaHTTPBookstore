@@ -33,7 +33,7 @@ class BookController(val bookRepository: BookRepository, val tokenService: Token
     pathEndOrSingleSlash {
       get {
         parameter('currency.?) { currency =>
-          parameters(('title.?, 'releaseDate.as[Date].?, 'categoryId.as[Long].?, 'author.?))
+          parameters(('title.?, 'releaseDate.as[Date].?, 'categoryId.?, 'author.?))
             .as(BookSearch.apply) { bookSearch =>
               onSuccess(bookRepository.search(bookSearch)) { books =>
                 currency match {
@@ -56,7 +56,7 @@ class BookController(val bookRepository: BookRepository, val tokenService: Token
           }
         }
     } ~
-      pathPrefix(IntNumber) { id =>
+      pathPrefix(Segment) { id =>
         pathEndOrSingleSlash {
           get {
             verifyToken { _ =>

@@ -4,7 +4,7 @@ import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import slick.jdbc.MySQLProfile.api._
 
-case class Category(id: Option[Long] = None, title: String)
+case class Category(id: Option[String] = None, title: String)
 
 object Category {
   implicit val categoryEncoder: Encoder[Category] = deriveEncoder[Category]
@@ -14,7 +14,7 @@ object Category {
 trait CategoryTable {
 
   class Categories(tag: Tag) extends Table[Category](tag, "categories") {
-    def id = column[Option[Long]]("id", O.PrimaryKey, O.AutoInc)
+    def id = column[Option[String]]("id", O.PrimaryKey)
 
     def title = column[String]("title")
 

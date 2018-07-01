@@ -52,7 +52,7 @@ class BookSpecHelper(categoryRepository: CategoryRepository)(bookRepository: Boo
     } yield books
   }
 
-  def book(categoryId: Long,
+  def book(categoryId: String,
            title: String = "Murder in Ganymede",
            releaseDate: Date = Date.valueOf("1998-01-20"),
            price: Double = 10.0,

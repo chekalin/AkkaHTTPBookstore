@@ -26,7 +26,7 @@ class CategoryController(val categoryRepository: CategoryRepository) extends Fai
           }
         }
     } ~
-      pathPrefix(IntNumber) { id =>
+      pathPrefix(Segment) { id =>
         pathEndOrSingleSlash {
           delete {
             onSuccess(categoryRepository.delete(id)) {

@@ -85,7 +85,7 @@ class BookEndpointSpec extends AsyncWordSpec
     }
 
     "return unauthorized when there is an invalid token in the request" in {
-      val invalidUser = User(Some(123), "Name", "Email", "Password")
+      val invalidUser = User(Some("some-id"), "Name", "Email", "Password")
       val invalidToken = tokenService.createToken(invalidUser)
 
       Get("/books/10/") ~> addHeader("Authorization", invalidToken) ~> bookController.routes ~> check {
@@ -94,7 +94,7 @@ class BookEndpointSpec extends AsyncWordSpec
     }
 
     "return the book information when the token is valid" in {
-      def assertion(token: String, bookId: Long): Future[Assertion] = {
+      def assertion(token: String, bookId: String): Future[Assertion] = {
         Get(s"/books/$bookId") ~> addHeader("Authorization", token) ~> bookController.routes ~> check {
           val book = responseAs[Book]
           book.title mustBe "Akka in Action"

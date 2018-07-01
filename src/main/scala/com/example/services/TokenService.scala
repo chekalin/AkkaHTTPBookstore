@@ -23,7 +23,7 @@ class TokenService(userRepository: UserRepository)(implicit executionContext: Ex
   def fetchUser(token: String): Future[Option[User]] = {
     Jwt.decodeRaw(token, tempKey, Seq(JwtAlgorithm.HS256)) match {
       case Success(json) =>
-        val id = decode[Long](json)
+        val id = decode[String](json)
         userRepository.findById(id.getOrElse(throw new IllegalArgumentException("invalid user id in the token")))
       case Failure(e) => Future.failed(e)
     }

@@ -1,8 +1,8 @@
 CREATE TABLE books (
-  id            INTEGER NOT NULL AUTO_INCREMENT,
+  id            VARCHAR(36) NOT NULL,
   title         VARCHAR(255) NOT NULL,
   release_date  DATE NOT NULL,
-  category_id   INTEGER,
+  category_id   VARCHAR(36),
   quantity      INTEGER,
   author        VARCHAR(255) NOT NULL,
   PRIMARY KEY (id),

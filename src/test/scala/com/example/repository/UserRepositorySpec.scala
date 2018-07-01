@@ -53,7 +53,7 @@ class UserRepositorySpec extends AsyncWordSpec
     }
 
     "not find user by id if user does not exist" in {
-      userRepository.findById(123).map { user =>
+      userRepository.findById("some-id").map { user =>
         user must not be defined
       }
     }

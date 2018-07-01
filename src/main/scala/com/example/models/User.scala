@@ -5,7 +5,7 @@ import io.circe.{Decoder, Encoder}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.Tag
 
-case class User(id: Option[Long], name: String, email: String, password: String)
+case class User(id: Option[String], name: String, email: String, password: String)
 
 object User {
   implicit val userEncoder: Encoder[User] = deriveEncoder[User]
@@ -15,7 +15,7 @@ object User {
 trait UserTable {
 
   class Users(tag: Tag) extends Table[User](tag, "users") {
-    def id = column[Option[Long]]("id", O.PrimaryKey, O.AutoInc)
+    def id = column[Option[String]]("id", O.PrimaryKey)
 
     def name = column[String]("name")
 

@@ -8,7 +8,7 @@ import io.circe.{Decoder, Encoder}
 case class BookSearch(
                        title: Option[String] = None,
                        releaseDate: Option[Date] = None,
-                       categoryId: Option[Long] = None,
+                       categoryId: Option[String] = None,
                        author: Option[String] = None
                      )
 

@@ -1,5 +1,7 @@
 package com.example.repository
 
+import java.util.UUID
+
 import com.example.models._
 import com.example.services.DatabaseService
 
@@ -10,15 +12,23 @@ class BookRepository(val databaseService: DatabaseService)(implicit executor: Ex
   import databaseService._
   import databaseService.driver.api._
 
-  def findById(id: Long): Future[Option[Book]] = db.run(books.filter(_.id === id).result.headOption)
+  def findById(id: String): Future[Option[Book]] = db.run(books.filter(_.id === id).result.headOption)
 
   def all: Future[Seq[Book]] = db.run(books.result)
 
-  def delete(id: Long): Future[Int] = db.run(books.filter(_.id === id).delete)
+  def delete(id: String): Future[Int] = db.run(books.filter(_.id === id).delete)
 
-  def create(book: Book): Future[Book] = db.run(books returning books.map(_.id) += book).map(id => book.copy(id = id))
+  def withGeneratedId(book: Book): Book = book.copy(id = Some(UUID.randomUUID().toString))
 
-  def bulkCreate(bookSeq: Seq[Book]): Future[Seq[Book]] = db.run((books returning books.map(_.id)).into((book, id) => book.copy(id = id)) ++= bookSeq)
+  def create(book: Book): Future[Book] = {
+    val bookWithId = withGeneratedId(book)
+    db.run(books += bookWithId).map(_ => bookWithId)
+  }
+
+  def bulkCreate(bookSeq: Seq[Book]): Future[Seq[Book]] = {
+    val bookSeqWithIds = bookSeq.map(withGeneratedId)
+    db.run(books ++= bookSeqWithIds).map(_ => bookSeqWithIds)
+  }
 
   def search(bookSearch: BookSearch): Future[Seq[Book]] = {
     val query = books.filter { book =>

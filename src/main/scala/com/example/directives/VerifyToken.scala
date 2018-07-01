@@ -22,7 +22,7 @@ trait VerifyToken {
     }
   }
 
-  def verifyTokenUser(userId: Long): Directive1[User] = verifyToken flatMap { userInToken =>
+  def verifyTokenUser(userId: String): Directive1[User] = verifyToken flatMap { userInToken =>
     userInToken.id match {
       case Some(id) =>
         if (userId == id) provide(userInToken)

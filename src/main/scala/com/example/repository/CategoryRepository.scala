@@ -1,5 +1,7 @@
 package com.example.repository
 
+import java.util.UUID
+
 import com.example.models._
 import com.example.services.DatabaseService
 
@@ -12,12 +14,17 @@ class CategoryRepository(val databaseService: DatabaseService)(implicit executor
 
   def all: Future[Seq[Category]] = db.run(categories.result)
 
-  def create(category: Category): Future[Category] = db
-    .run(categories returning categories.map(_.id) += category)
-    .map(id => category.copy(id = id))
+  def withGeneratedId(category: Category): Category =
+    category.copy(id = Some(UUID.randomUUID().toString))
+
+  def create(category: Category): Future[Category] = {
+    val categoryWithId = withGeneratedId(category)
+    db.run(categories += categoryWithId)
+      .map(_ => categoryWithId)
+  }
 
   def findByTitle(title: String): Future[Option[Category]] = db.run(categories.filter(_.title === title).result.headOption)
 
-  def delete(id: Long): Future[Int] = db.run(categories.filter(_.id === id).delete)
+  def delete(id: String): Future[Int] = db.run(categories.filter(_.id === id).delete)
 
 }

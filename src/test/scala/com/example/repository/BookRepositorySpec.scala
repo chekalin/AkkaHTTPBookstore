@@ -30,7 +30,7 @@ class BookRepositorySpec extends AsyncWordSpec
       }
     }
     "not find a non-existent book" in {
-      bookRepository.findById(0) map { b =>
+      bookRepository.findById("non-existent-id") map { b =>
         b must not be defined
       }
     }
